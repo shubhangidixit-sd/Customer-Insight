@@ -104,6 +104,27 @@ nav.cats{position:sticky;top:0;z-index:5;background:rgba(246,247,255,.94);backdr
 footer{padding:20px 0 50px;color:var(--muted);font-size:12.5px}
 @media(max-width:760px){.two,.cards{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}html{scroll-behavior:auto}}
+
+/* trends */
+.trends{margin:44px 0 10px;border-top:1px solid var(--line);padding-top:34px}
+.trends h2{font-size:24px;font-weight:800;margin:0 0 6px}
+.trends>.sub{color:var(--muted);font-size:14px;margin:0 0 22px;max-width:72ch}
+.tblock{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin-bottom:18px;box-shadow:0 8px 32px rgba(102,117,237,.06)}
+.tblock h3{font-size:17px;font-weight:700;margin:0 0 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.tnote{font-size:10.5px;font-weight:700;color:var(--primary);background:var(--pos-bg);padding:3px 9px;border-radius:100px;text-transform:uppercase;letter-spacing:.05em}
+.tnote.warn{color:#b46b18;background:#FBF1E0}
+.tread{font-size:14px;color:var(--text);margin:14px 0 0}
+.trends .chart{width:100%;height:auto;display:block}
+.trends .grid{stroke:#E7E9FB;stroke-width:1}
+.trends .ylab{fill:var(--muted);font-size:11px;text-anchor:end}
+.trends .xlab{fill:var(--muted);font-size:11px;text-anchor:middle}
+.trends .blab{fill:var(--navy);font-size:13px;text-anchor:end}
+.trends .bval{fill:var(--muted);font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:12.5px;color:var(--text)}
+.legend span{display:inline-flex;align-items:center}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px}
+.callout{background:#F6F7FF;border:1px dashed var(--light);border-radius:14px;padding:16px 18px;font-size:14px;color:var(--text)}
+.callout b{color:var(--navy)}
 </style>
 </head>
 <body>
@@ -131,6 +152,43 @@ footer{padding:20px 0 50px;color:var(--muted);font-size:12.5px}
 
 <div class="wrap">
   <section class="panel" id="panel" role="tabpanel"></section>
+
+  <section class="trends" id="trends" style="display:none">
+    <h2>12-month trends <span class="tnote">all products</span></h2>
+    <p class="sub">How the customer voice has moved month to month, store-wide. Complaints use complete data for the full year. Praise uses 4-star reviews, the only positive slice retrievable for 12 months, shown in the same monthly format so the two are comparable. On every chart, ignore the far-right tail: those months are still collecting reviews.</p>
+
+    <div class="tblock">
+      <h3>Complaints per month <span class="tnote">complete data</span></h3>
+      <div id="c-negvol"></div>
+      <p class="tread">Complaint volume has drifted down over the year, roughly 100 to 145 a month early on toward 70 to 90 lately, with a holiday-season bump into December and January.</p>
+    </div>
+
+    <div class="tblock">
+      <h3>What the complaints are about <span class="tnote">% of each month's negatives</span></h3>
+      <div id="c-negmix"></div>
+      <p class="tread">The "slow" and "too expensive" gripes have faded, while "never arrived" and "is it genuine" stay stubbornly flat. The pain is shifting from annoyance toward broken trust.</p>
+    </div>
+
+    <div class="tblock">
+      <h3>Praise per month <span class="tnote warn">4-star reviews</span></h3>
+      <div id="c-posvol"></div>
+      <p class="tread">Positive volume, in the same monthly format as complaints. It holds around 70 to 110 a month through early 2026, then falls off. That tail is mostly review lag: lukewarm 4-star reviews come in slowest, so recent months are still filling in, not a real drop in happy customers.</p>
+    </div>
+
+    <div class="tblock">
+      <h3>What the praise is about <span class="tnote warn">% of each month's 4-star</span></h3>
+      <div id="c-posmix"></div>
+      <p class="tread">Fast delivery, quality and service as a share of that month's 4-star reviews. None of them climbs or falls clearly: the praise mix is broadly flat all year. Positive perception is steady, so the real movement is on the complaint side, not here.</p>
+    </div>
+
+    <div class="tblock">
+      <h3>What customers praise right now <span class="tnote">Jun to Sep 2026</span></h3>
+      <div id="c-posbar"></div>
+      <p class="tread">The current snapshot, where full 4 and 5-star data exists: quality and fast delivery are neck and neck on top, far ahead of the rest. The strong fast-delivery praise mirrors the falling shipping complaints above.</p>
+    </div>
+
+    <div class="callout"><b>Why praise uses 4-star reviews.</b> Every public route was tested (date filters, deep paging, cache-busting, review-type slices) and Judge.me caps retrievable 5-star reviews at about four months. 4-star reviews are the only positive slice available for the full year, so the monthly praise trend is built from them. The full 5-star praise history older than four months is not exposed publicly and would need a Judge.me account export.</div>
+  </section>
 
   <section class="explorer">
     <h2>Read the reviews yourself</h2>
@@ -171,6 +229,10 @@ document.getElementById('dist').innerHTML = DATA.meta.dist.map(d=>{
 document.getElementById('geo').innerHTML='<b>Where they are:</b> '+DATA.meta.countries.slice(0,6).map(c=>esc(c.name)).join(', ')+'. Almost all are Indians living abroad, buying what they can\'t get locally.';
 const pills=document.getElementById('pills');
 DATA.cats.forEach((c,i)=>{const b=document.createElement('button');b.className='pill';b.textContent=c.name;b.setAttribute('role','tab');b.setAttribute('aria-selected',i===0?'true':'false');b.onclick=()=>select(i);pills.appendChild(b);});
+const panelEl=document.getElementById('panel'), trendsEl=document.getElementById('trends');
+const tpill=document.createElement('button');tpill.className='pill';tpill.textContent='12-month trends';tpill.setAttribute('role','tab');tpill.setAttribute('aria-selected','false');
+tpill.onclick=function(){[...pills.children].forEach(p=>p.setAttribute('aria-selected','false'));tpill.setAttribute('aria-selected','true');panelEl.style.display='none';trendsEl.style.display='';};
+pills.appendChild(tpill);
 function themeHTML(t,pol){
   const cls=pol==='p'?'p':'n';
   const voices=t.examples.map(e=>`<div class="voice"><span class="q">“${esc(e.body)}”</span><span class="m"><span class="star">${stars(e.r)}</span> · ${esc(e.country||'—')} · ${esc(e.product)}</span></div>`).join('');
@@ -178,6 +240,7 @@ function themeHTML(t,pol){
 }
 function select(i){
   [...pills.children].forEach((p,j)=>p.setAttribute('aria-selected',j===i?'true':'false'));
+  panelEl.style.display=''; trendsEl.style.display='none';
   const c=DATA.cats[i];
   document.getElementById('panel').innerHTML=`
     <p class="plain">${esc(c.plain)}</p>
@@ -205,6 +268,58 @@ function render(){
 }
 document.getElementById('more').onclick=()=>{shown+=40;render()};
 render();
+</script>
+<script>
+(function(){
+  const T={
+    months:["08/25","09/25","10/25","11/25","12/25","01/26","02/26","03/26","04/26","05/26","06/26","07/26","08/26","09/26"],
+    negvol:[140,111,90,81,108,136,100,145,89,53,76,72,76,43],
+    mix:[
+      {name:"Slow / late", color:"#E0594B", values:[4,5,3,9,13,10,6,9,3,4,8,3,5,9]},
+      {name:"Too expensive", color:"#8890CC", values:[4,4,4,7,8,3,4,2,1,4,3,1,5,2]},
+      {name:"Lost / not received", color:"#1E2260", values:[10,4,3,9,6,7,9,3,8,6,7,7,9,2]},
+      {name:"Doubts it's genuine / quality", color:"#6675ED", values:[6,6,8,2,5,4,11,4,3,8,4,8,8,14]}
+    ],
+    posbar:[["Quality / it works",17.8],["Fast delivery",16.7],["Helpful service",9.4],["Loyal / reorder",6.8],["Well packed",3.1],["Genuine",3.0],["Selection",2.9],["Value",2.0],["Taste",1.7]],
+    posvol:[93,105,99,68,79,108,101,104,35,22,29,17,22,5],
+    posmix:[
+      {name:"Fast delivery", color:"#6675ED", values:[8,12,3,15,5,4,8,8,14,14,3,0,5,0]},
+      {name:"Quality / works", color:"#1E2260", values:[6,8,6,6,6,6,13,10,9,0,14,0,0,0]},
+      {name:"Helpful service", color:"#808EFF", values:[9,6,7,10,5,11,12,10,9,5,14,6,0,20]}
+    ]
+  };
+  function line(id,labels,series,ymax){
+    const W=720,H=300,pl=42,pr=14,pt=16,pb=46;
+    const n=labels.length; ymax=ymax||Math.ceil(Math.max.apply(null,[].concat.apply([],series.map(s=>s.values)))/5)*5;
+    const X=i=>pl+(W-pl-pr)*(n===1?0.5:i/(n-1)), Y=v=>H-pb-(H-pt-pb)*(v/ymax);
+    let g="";
+    [0,ymax/2,ymax].forEach(t=>{const y=Y(t);g+=`<line class="grid" x1="${pl}" y1="${y}" x2="${W-pr}" y2="${y}"/><text class="ylab" x="${pl-8}" y="${y+4}">${Math.round(t)}</text>`;});
+    labels.forEach((lb,i)=>{ if(i%2===0||n<=6) g+=`<text class="xlab" x="${X(i)}" y="${H-pb+18}">${lb}</text>`; });
+    series.forEach(s=>{
+      g+=`<polyline points="${s.values.map((v,i)=>X(i)+','+Y(v)).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>`;
+      s.values.forEach((v,i)=>g+=`<circle cx="${X(i)}" cy="${Y(v)}" r="2.6" fill="${s.color}"/>`);
+    });
+    const leg = series.length>1? `<div class="legend">${series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}</span>`).join('')}</div>`:"";
+    document.getElementById(id).innerHTML=`<svg viewBox="0 0 ${W} ${H}" class="chart" preserveAspectRatio="xMidYMid meet">${g}</svg>`+leg;
+  }
+  function barsH(id,items,color){
+    const W=720,rh=32,pl=150,pr=44,pt=6,pb=6,H=pt+pb+items.length*rh;
+    const vmax=Math.ceil(Math.max.apply(null,items.map(i=>i[1])));
+    const X=v=>pl+(W-pl-pr)*(v/vmax);
+    let g="";
+    items.forEach((it,i)=>{const y=pt+i*rh+rh/2;
+      g+=`<text class="blab" x="${pl-10}" y="${y+4}">${it[0]}</text>`;
+      g+=`<rect x="${pl}" y="${y-9}" width="${Math.max(2,X(it[1])-pl)}" height="18" rx="4" fill="${color}"/>`;
+      g+=`<text class="bval" x="${X(it[1])+6}" y="${y+4}">${it[1]}%</text>`;
+    });
+    document.getElementById(id).innerHTML=`<svg viewBox="0 0 ${W} ${H}" class="chart" preserveAspectRatio="xMidYMid meet">${g}</svg>`;
+  }
+  line("c-negvol",T.months,[{name:"Negatives",color:"#6675ED",values:T.negvol}]);
+  line("c-negmix",T.months,T.mix,14);
+  barsH("c-posbar",T.posbar,"#6675ED");
+  line("c-posvol",T.months,[{name:"4-star praise",color:"#6675ED",values:T.posvol}]);
+  line("c-posmix",T.months,T.posmix,20);
+})();
 </script>
 </body>
 </html>
